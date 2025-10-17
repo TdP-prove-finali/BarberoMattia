@@ -128,13 +128,37 @@ class View(ft.UserControl):
     def load_Fornitore(self):
         width=self._page.width
         self.NavFornitori=ft.Container(ft.Text("Seleziona Fornitori",weight="bold",size=24,color=ft.colors.WHITE,text_align="center"),
-                                       bgcolor=ft.colors.BLUE_GREY_900, width=width*0.5, border_radius=5,height=60,alignment=ft.alignment.center)
+                                       bgcolor=ft.colors.BLUE_GREY_900, width=width*0.7, border_radius=5,height=60,alignment=ft.alignment.center)
         self._page.controls.append(self.NavFornitori)
         txtInF1 = ft.Text(value="Prodotto", weight="bold", size=20, width=width * 0.22)
         txtInF2 = ft.Text(value="Pz", weight="bold", size=20, width=width * 0.1)
         txtInF3 = ft.Text(value="Fornitore", weight="bold", size=20, width=width * 0.22)
-        self.rowF1 = ft.Row([txtInF1, txtInF2,txtInF3], spacing=20, alignment="center")
-        self._page.controls.append(self.rowF1)
+        rowF1 = ft.Row([txtInF1, txtInF2,txtInF3], vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=20,alignment="center")
+        self.containerF1=ft.Container(rowF1,padding=ft.padding.all(4),
+                                            margin=ft.margin.all(4),border_radius=5,width=width*0.6)
+        self._page.controls.append(self.containerF1)
+        self._page.update()
+
+    def load_btn(self):
+        btnFine = ft.ElevatedButton(text="Riordina", on_click=self._controller.fine,
+                                    style=ft.ButtonStyle(
+                                        shape=ft.RoundedRectangleBorder(radius=0), color=ft.colors.WHITE,
+                                        bgcolor=ft.colors.ORANGE_600, overlay_color=ft.colors.ORANGE_300))
+        btnSelez = ft.ElevatedButton(text="Selezione Automatica",
+                                          on_click=self._controller.migliore,
+                                          style=ft.ButtonStyle(
+                                              shape=ft.RoundedRectangleBorder(radius=0), color=ft.colors.WHITE,
+                                              bgcolor=ft.colors.ORANGE_600, overlay_color=ft.colors.ORANGE_300))
+        btnCosto = ft.ElevatedButton(text="Mostra costo",
+                                          on_click=self._controller.costoTotale,
+                                          style=ft.ButtonStyle(
+                                              shape=ft.RoundedRectangleBorder(radius=0), color=ft.colors.WHITE,
+                                              bgcolor=ft.colors.ORANGE_600, overlay_color=ft.colors.ORANGE_300))
+
+        self._rowPF=ft.Row([btnSelez,btnCosto, btnFine])
+        self._page.controls.append(self._rowPF)
+        self._rowPF2=ft.Row()
+        self._page.controls.append(self._rowPF2)
         self._page.update()
 
 # Caricamento pagina storicoV

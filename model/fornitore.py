@@ -13,3 +13,5 @@ class Fornitore:
         return hash(self.id_Fornitore)
     def __eq__(self, other):
         return self.id_Fornitore == other.id_Fornitore
+    def __str__(self):
+        return self.nome

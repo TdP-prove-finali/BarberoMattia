@@ -1,4 +1,5 @@
 import flet as ft
+from flet_core import page
 
 from model.model import Model
 from UI.view import View
@@ -12,3 +13,6 @@ def main(page: ft.Page):
     my_view.load_interface()
 
 ft.app(target=main)
+
+if __name__ == '__main__':
+    main(page)

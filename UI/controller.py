@@ -16,7 +16,7 @@ class Controller:
         self._prodVenduti={}
         self._idMap={}
         self._iPrec=0
-
+        self.ddF={}
         self.venduti={}
         self.riordina={}
         self.periodo=0
@@ -98,20 +98,57 @@ class Controller:
         self.clear()
         self._view.load_Fornitore()
         width = self._view._page.width
-
+        associazione=self._model.associazione
         for pr,pz in self.venduti.items():
             nome=self._idMap[pr].nome
             pezziRiordinati=self.riordina[pr].value
-            if pezziRiordinati!="":
-                self.riordina[pr].value=0
-                pezziRiordinati=0
-            self._view._page.controls.append(ft.Container(ft.Row([ft.Text(f"{nome}", size=16,width=width*0.22),ft.Text(f"{pezziRiordinati}", size=16,width=width*0.1) ],
+            if pezziRiordinati=="":
+                self.riordina.pop(pr)
+            else:
+                self.ddF[pr]=ft.Dropdown(width=width*0.22)
+                self.ddF[pr].options=[]
+                for idP,idF_nome in associazione.items():
+                    if idP==pr:
+                        for idF,nomeF in idF_nome:
+                            self.ddF[pr].options.append(ft.dropdown.Option(key=idF,text=nomeF))
+                self._view._page.controls.append(ft.Container(ft.Row([ft.Text(f"{nome}", size=16,width=width*0.22),ft.Text(f"{pezziRiordinati}", size=16,width=width*0.1),self.ddF[pr] ],
                                             vertical_alignment=ft.CrossAxisAlignment.CENTER, spacing=20,alignment="center"),padding=ft.padding.all(4),
-                                            margin=ft.margin.all(4),border_radius=5,bgcolor=ft.colors.WHITE,width=width*0.45))
+                                            margin=ft.margin.all(4),border_radius=5,bgcolor=ft.colors.WHITE,width=width*0.6))
+        self._view.load_btn()
+        self._model.provaSetGrafo(self.ddF)
 
+
+
+    def migliore(self,e):
+        prodotti=[]
+        for p in self.riordina:
+            prodotti.append(p)
+
+
+        self._model.getMiglioriFornitori(prodotti)
+
+    def costoTotale(self,e):
+        flag=False
+        for idP,f in self.ddF.items():
+
+            if f.value!=None:
+                flag=True
+                break
+        if flag:
+            #funzione model costo totale
+            testo=ft.Text()
+        else:
+            testo=ft.Text("Inserisci Tutti i fornitori!",color="red")
+        self._view._rowPF2.controls.append(testo)
         self._view.update_page()
-        #svuotare riordina e venduti
 
+
+    def fine(self,e):
+        self.ddF={}
+        self.riordina={}
+        self.venduti={}
+        self.clear()
+        self._view.load_Vendite()
 
     def previsioneDomanda(self,e):
         for id,pzV in self.venduti.items():
