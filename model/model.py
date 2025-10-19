@@ -1,7 +1,10 @@
 import copy
 import math
+from operator import index
 
 import networkx as nx
+from flet_core.icons import PRINT_DISABLED
+
 from database.DAO import DAO
 from model.fornitore import Fornitore
 
@@ -20,6 +23,9 @@ class Model:
         self.prodottiFornitori,self.prodottiFornitore,self.idMapP=DAO.getProdottiFornitori()
         self.getAssociazione()
         self.n = 0
+        self.risultati=[]
+        self.riordina={}
+        self.risultatiAssociaz=[]
 
     
 
@@ -63,9 +69,34 @@ class Model:
     def getAssociazione(self):
         self.associazione=DAO.getAssociazione()
 
-    def getMiglioriFornitori(self,prodotti):
+    def getMiglioriFornitori(self,riordina):
+        prodotti = []
+        self.riordina=riordina
+        for p in self.riordina:
+            prodotti.append(p)
         negozio=copy.deepcopy(self.negozio)
-        self.ricorsione([negozio],prodotti,[],[])
+        self.ricorsione([negozio],prodotti,copy.deepcopy(prodotti),{})
+
+
+    def getCosto(self):
+        min=99999999
+        best=[]
+        salva=0
+        for ris in self.risultati:
+            costo=0
+            for i in range(len(ris)):
+                if i < (len(ris)-1):
+                    costo += self.grafo.get_edge_data(ris[i],ris[i+1])['weight']
+                    for pf in self.prodottiFornitori:
+                        if pf.idF==ris[i+1].id_Fornitore:
+                            for pr,val in self.riordina.items():
+                                if pr==pf.idP:
+                                    costo+=val.value*pf.costo
+                if costo < min:
+                    salva=self.risultati.index(ris)
+                    min=costo
+                    best=ris
+        return best,min,self.risultatiAssociaz[salva]
 
 
     '''def ricorsione(self,parziale,prodotti,array):
@@ -162,7 +193,7 @@ class Model:
 
                 return []'''
 
-    def ricorsione(self,parziale,prodotti,arrayP,arrayF):
+    '''def ricorsione(self,parziale,prodotti,arrayP,arrayF):
         if arrayP == prodotti :
             print(parziale)
         else:
@@ -188,4 +219,39 @@ class Model:
             for vicino in self.grafo.neighbors(parziale[-1]):
                 if vicino not in parziale and vicino.id_Fornitore not in arrayF:
                     ritorna.append(vicino)
+            return ritorna'''
+
+    def ricorsione(self,parziale,prodotti,arrayP,associaz):
+        if arrayP ==[]:
+                self.risultati.append(copy.deepcopy(parziale))
+                self.risultatiAssociaz.append(copy.deepcopy(associaz))
+        else:
+            for fornitore in self.trovaCandidati(parziale,arrayP):
+                for idP in self.prodottiFornitore[fornitore.id_Fornitore]:
+                    if idP in arrayP:
+                        arrayP.remove(idP)
+                        if fornitore.id_Fornitore not in associaz:
+                            associaz[fornitore.id_Fornitore]=[]
+                            associaz[fornitore.id_Fornitore].append(idP)
+                        else:
+                            associaz[fornitore.id_Fornitore].append(idP)
+                        if fornitore not in parziale:
+                            parziale.append(fornitore)
+                self.ricorsione(parziale,prodotti,arrayP,associaz)
+                parziale.pop()
+                arrayP=copy.deepcopy(prodotti)
+
+
+    def trovaCandidati(self,parziale,arrayP):
+        if len(parziale)==1:
+            return self.grafo.neighbors(parziale[0])
+        else:
+            ritorna=[]
+            if len(arrayP)>=1:
+                for vicino in self.grafo.neighbors(parziale[-1]):
+                    if vicino not in parziale:
+                        for idP in self.prodottiFornitore[vicino.id_Fornitore]:
+                            if idP in arrayP:
+                                if vicino not in ritorna:
+                                    ritorna.append(vicino)
             return ritorna

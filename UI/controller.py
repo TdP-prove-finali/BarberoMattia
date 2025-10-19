@@ -120,23 +120,47 @@ class Controller:
 
 
     def migliore(self,e):
-        prodotti=[]
-        for p in self.riordina:
-            prodotti.append(p)
-
-
-        self._model.getMiglioriFornitori(prodotti)
+        self._model.getMiglioriFornitori(self.riordina)
+        fornitori,min,pf=self._model.getCosto()
+        for idP,dd in self.ddF.items():
+            for f,prodotti in pf.items():
+                for p in prodotti:
+                    if p==idP:
+                        self.ddF[idP].value=f
+        testo = ft.Text(f"Costo totale: {round(min,2)}")
+        self._view._rowPF2.controls=[]
+        self._view._rowPF2.controls.append(testo)
+        self._view.update_page()
 
     def costoTotale(self,e):
         flag=False
+        self._view._rowPF2.controls = []
         for idP,f in self.ddF.items():
-
             if f.value!=None:
                 flag=True
                 break
         if flag:
+            grafo=self._model.grafo
+            idmapF=self._model.idMapF
+            negozio=self._model.negozio
+            peso=0
+            i = 0
+            prodottiFornitori=self._model.prodottiFornitori
+
+            for idP,dd in self.ddF.items():
+                prec=idmapF[int(dd.value)]
+                if i==0:
+                    peso+=grafo.get_edge_data(negozio,idmapF[int(dd.value)])['weight']
+                    i+=1
+                else:
+                    peso+=grafo.get_edge_data(prec,idmapF[int(dd.value)])['weight']
+
+                for pf in prodottiFornitori:
+                    if pf.idF==int(dd.value) and pf.idP==idP:
+                        peso+=self.riordina[idP].value*pf.costo
+
             #funzione model costo totale
-            testo=ft.Text()
+            testo=ft.Text(f'Costo totale: {round(peso,2)}')
         else:
             testo=ft.Text("Inserisci Tutti i fornitori!",color="red")
         self._view._rowPF2.controls.append(testo)
