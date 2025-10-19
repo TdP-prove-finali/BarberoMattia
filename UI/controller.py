@@ -148,13 +148,12 @@ class Controller:
             prodottiFornitori=self._model.prodottiFornitori
 
             for idP,dd in self.ddF.items():
-                prec=idmapF[int(dd.value)]
                 if i==0:
                     peso+=grafo.get_edge_data(negozio,idmapF[int(dd.value)])['weight']
                     i+=1
                 else:
                     peso+=grafo.get_edge_data(prec,idmapF[int(dd.value)])['weight']
-
+                prec = idmapF[int(dd.value)]
                 for pf in prodottiFornitori:
                     if pf.idF==int(dd.value) and pf.idP==idP:
                         peso+=self.riordina[idP].value*pf.costo
@@ -168,6 +167,7 @@ class Controller:
 
 
     def fine(self,e):
+        self._model.riordinati(self.riordina)
         self.ddF={}
         self.riordina={}
         self.venduti={}

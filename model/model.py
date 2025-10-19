@@ -62,6 +62,13 @@ class Model:
                 if prodotto.id_Prodotto == id:
                     prodotto.disponibilita=prodotto.disponibilita-pz
 
+    def riordinati(self,prodotti):
+        for id,pz in prodotti.items():
+            for prodotto in self.prodotti:
+                if prodotto.id_Prodotto == id:
+                    prodotto.disponibilita=prodotto.disponibilita+pz.value
+
+
 
     def getStoricoV(self,prV,i):
         self.storicoV[copy.deepcopy(i)] = copy.deepcopy(prV)
@@ -71,6 +78,8 @@ class Model:
 
     def getMiglioriFornitori(self,riordina):
         prodotti = []
+        self.risultati=[]
+        self.risultatiAssociaz=[]
         self.riordina=riordina
         for p in self.riordina:
             prodotti.append(p)
