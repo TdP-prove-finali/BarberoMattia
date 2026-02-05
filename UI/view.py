@@ -188,7 +188,25 @@ class View(ft.UserControl):
 
 # Caricamento pagina storicoR
     def load_StoricoRiordina(self):
+        width = self._page.window_width
         self.setNavBar()
+        intestazione = ft.Container(
+            content=ft.Row(
+                controls=[
+                    ft.Text("Periodo", color=ft.colors.WHITE, width=width * 0.05, text_align="center", weight="bold"),
+                    ft.Text("Id", color=ft.colors.WHITE, width=width * 0.05, text_align="center", weight="bold"),
+                    ft.Text("Nome", color=ft.colors.WHITE, width=width * 0.2, text_align="center", weight="bold"),
+                    ft.Text("quantità", color=ft.colors.WHITE, width=width * 0.05, text_align="center", weight="bold"),
+                ],
+                alignment="spaceEvenly",
+            ),
+            bgcolor="orange",
+            width=width * 0.75,  # 60% della pagina
+            padding=10,
+            alignment=ft.alignment.center
+        )
+        self._page.controls.append(intestazione)
+        self._controller.loadRiordini()
         self._page.update()
 
 # altre funzioni

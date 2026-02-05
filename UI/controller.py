@@ -214,6 +214,45 @@ class Controller:
     def paginaStoricoR(self,e):
         self.clear()
         self._view.load_StoricoRiordina()
+        self.loadRiordini()
+
+    def loadRiordini(self):
+        width = self._view._page.width
+        prodottiFornitori = self._model.prodottiFornitori
+
+        for i, r in self._model.storicoR.items():  # i = mensilità
+            for idP, (qtn, idF) in r.items():
+                nomeP = self._idMap[idP].nome
+                nomeF = self._model.idMapF[idF].nome  # attributo 'nome' del fornitore
+
+                # cerco il costo unitario del prodotto presso quel fornitore
+                costo_unit = 0.0
+                for pf in prodottiFornitori:
+                    if pf.idF == idF and pf.idP == idP:
+                        costo_unit = pf.costo
+                        break
+
+                totale = qtn * costo_unit
+
+                riga = ft.Container(
+                    content=ft.Row(
+                        controls=[
+                            ft.Text(f"{i}", color=ft.colors.BLACK, width=width * 0.05, text_align="center"),
+                            ft.Text(f"{idP}", color=ft.colors.BLACK, width=width * 0.05, text_align="center"),
+                            ft.Text(f"{nomeP}", color=ft.colors.BLACK, width=width * 0.2, text_align="center"),
+                            ft.Text(f"{qtn}", color=ft.colors.BLACK, width=width * 0.05, text_align="center"),
+                            ft.Text(f"{idF}", color=ft.colors.BLACK, width=width * 0.05, text_align="center"),
+                            ft.Text(f"{nomeF}", color=ft.colors.BLACK, width=width * 0.1, text_align="center"),
+                            ft.Text(f"{totale}", color=ft.colors.BLACK, width=width * 0.1, text_align="center"),
+                        ],
+                        alignment="spaceEvenly",
+                    ),
+                    bgcolor="white",
+                    width=width * 0.85,
+                    padding=10,
+                    alignment=ft.alignment.center
+                )
+                self._view._page.controls.append(riga)
 
 #altre funzioni
     def clear(self):

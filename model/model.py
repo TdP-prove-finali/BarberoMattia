@@ -26,8 +26,8 @@ class Model:
         self.risultati=[]
         self.riordina={}
         self.risultatiAssociaz=[]
+        self.costo_distanza = 2  # qui metti il tuo "costo x"
 
-    
 
     def getProdotti(self):
         return self.prodotti,self.idMap
@@ -47,8 +47,9 @@ class Model:
         for f1 in self.grafo.nodes():
             for f2 in self.grafo.nodes():
                 if f1 != f2:
-                    peso = math.sqrt((f2.CoordinataX - f1.CoordinataX) * (f2.CoordinataX - f1.CoordinataX) + (
+                    distanza = math.sqrt((f2.CoordinataX - f1.CoordinataX) * (f2.CoordinataX - f1.CoordinataX) + (
                                 f2.CoordinataY - f1.CoordinataY) * (f2.CoordinataY - f1.CoordinataY))
+                    peso = distanza * self.costo_distanza
                     self.grafo.add_edge(f2, f1, weight=peso)
 
 
@@ -107,6 +108,70 @@ class Model:
                     best=ris
         return best,min,self.risultatiAssociaz[salva]
 
+    def ricorsione(self, parziale, prodotti, da_coprire, associaz):
+        # Caso base: tutti i prodotti sono coperti
+        if not da_coprire:  # lista vuota
+            self.risultati.append(copy.deepcopy(parziale))
+            self.risultatiAssociaz.append(copy.deepcopy(associaz))
+            return
+
+        # Scelgo i fornitori candidati
+        candidati = self.trovaCandidati(parziale, da_coprire)
+
+        for fornitore in candidati:
+            # Prodotti che questo fornitore può fornire tra quelli ancora da coprire
+            prodotti_coperti = [
+                idP
+                for idP in self.prodottiFornitore[fornitore.id_Fornitore]
+                if idP in da_coprire
+            ]
+            if not prodotti_coperti:
+                continue  # questo fornitore in realtà non aiuta a coprire i rimanenti
+
+            # --- SCELTA ---
+            # salvo stato precedente per poter fare backtracking
+            stato_precedente_da_coprire = da_coprire.copy()
+            stato_precedente_assoc = associaz.get(fornitore.id_Fornitore, []).copy()
+            aveva_gia = fornitore.id_Fornitore in associaz
+
+            # aggiorno da_coprire togliendo i prodotti coperti da questo fornitore
+            for p in prodotti_coperti:
+                da_coprire.remove(p)
+
+            # aggiorno associazioni fornitore -> prodotti
+            if not aveva_gia:
+                associaz[fornitore.id_Fornitore] = []
+            associaz[fornitore.id_Fornitore].extend(prodotti_coperti)
+
+            # aggiungo il fornitore al percorso (se non già presente)
+            parziale.append(fornitore)
+
+            # --- RICORSIONE ---
+            self.ricorsione(parziale, prodotti, da_coprire, associaz)
+
+            # --- BACKTRACKING ---
+            parziale.pop()
+            # ripristina lista prodotti da coprire
+            da_coprire = stato_precedente_da_coprire
+            # ripristina associazioni
+            if aveva_gia:
+                associaz[fornitore.id_Fornitore] = stato_precedente_assoc
+            else:
+                del associaz[fornitore.id_Fornitore]
+
+    def trovaCandidati(self, parziale, arrayP):
+        if len(parziale) == 1:
+            return self.grafo.neighbors(parziale[0])
+        else:
+            ritorna = []
+            if len(arrayP) >= 1:
+                for vicino in self.grafo.neighbors(parziale[-1]):
+                    if vicino not in parziale:
+                        for idP in self.prodottiFornitore[vicino.id_Fornitore]:
+                            if idP in arrayP:
+                                if vicino not in ritorna:
+                                    ritorna.append(vicino)
+            return ritorna
 
     '''def ricorsione(self,parziale,prodotti,array):
         if array==prodotti:
@@ -228,7 +293,7 @@ class Model:
             for vicino in self.grafo.neighbors(parziale[-1]):
                 if vicino not in parziale and vicino.id_Fornitore not in arrayF:
                     ritorna.append(vicino)
-            return ritorna'''
+            return ritorna
 
     def ricorsione(self,parziale,prodotti,arrayP,associaz):
         if arrayP ==[]:
@@ -263,4 +328,4 @@ class Model:
                             if idP in arrayP:
                                 if vicino not in ritorna:
                                     ritorna.append(vicino)
-            return ritorna
+            return ritorna'''
