@@ -120,8 +120,8 @@ class Controller:
 
 
     def migliore(self,e):
-        self._model.getMiglioriFornitori(self.riordina)
-        fornitori,min,pf=self._model.getCosto()
+        fornitori,min,pf=self._model.getMiglioriFornitori(self.riordina)
+        #fornitori,min,pf=self._model.getCosto()
         for idP,dd in self.ddF.items():
             for f,prodotti in pf.items():
                 for p in prodotti:
@@ -132,39 +132,58 @@ class Controller:
         self._view._rowPF2.controls.append(testo)
         self._view.update_page()
 
-    def costoTotale(self,e):
-        flag=False
+    def costoTotale(self, e):
+        flag = True
         self._view._rowPF2.controls = []
-        for idP,f in self.ddF.items():
-            if f.value!=None:
-                flag=True
+        #controllo siano stati sel tutti i dd
+        for idP, f in self.ddF.items():
+            if f.value == None:
+                flag = False
                 break
         if flag:
-            grafo=self._model.grafo
-            idmapF=self._model.idMapF
-            negozio=self._model.negozio
-            peso=0
-            i = 0
-            prodottiFornitori=self._model.prodottiFornitori
+            fornitori_selezionati = {}  # Dizionario: {idFornitore: [lista_prodotti]}
+            costo_prodotti = 0.0
+            for id_prodotto, dropdown in self.ddF.items():
+                id_fornitore = int(dropdown.value)
+                # Raggruppa i prodotti per fornitore
+                if id_fornitore not in fornitori_selezionati:
+                    fornitori_selezionati[id_fornitore] = []
+                fornitori_selezionati[id_fornitore].append(id_prodotto)
+                #costoTot Prodotti
+                quantita = int(self.riordina[id_prodotto].value)
+                for pf in self._model.prodottiFornitori:
+                    if pf.idF == id_fornitore and pf.idP == id_prodotto:
+                        costo_prodotti += quantita * pf.costo
+                        break
 
-            for idP,dd in self.ddF.items():
-                if i==0:
-                    peso+=grafo.get_edge_data(negozio,idmapF[int(dd.value)])['weight']
-                    i+=1
-                else:
-                    peso+=grafo.get_edge_data(prec,idmapF[int(dd.value)])['weight']
-                prec = idmapF[int(dd.value)]
-                for pf in prodottiFornitori:
-                    if pf.idF==int(dd.value) and pf.idP==idP:
-                        peso+=self.riordina[idP].value*pf.costo
+            grafo = self._model.grafo
+            idmapF = self._model.idMapF
+            #nodi da visitare unici
+            nodi_da_visitare = {idmapF[idF] for idF in fornitori_selezionati.keys()}
+            costo_viaggio = 0.0
+            nodo_corrente = self._model.negozio
 
-            #funzione model costo totale
-            testo=ft.Text(f'Costo totale: {round(peso,2)}')
+            while len(nodi_da_visitare)!=0:
+                nodo_piu_vicino = None
+                distanza_minima = 999999999
+                for nodo_candidato in nodi_da_visitare:
+                    distanza = grafo.get_edge_data(nodo_corrente, nodo_candidato)['weight']
+                    if distanza < distanza_minima:
+                        distanza_minima = distanza
+                        nodo_piu_vicino = nodo_candidato
+
+                costo_viaggio += distanza_minima
+                nodo_corrente = nodo_piu_vicino
+                nodi_da_visitare.remove(nodo_corrente)
+
+            costo_finale = costo_prodotti + costo_viaggio
+            testo = ft.Text(f'Costo totale: {round(costo_finale, 2)}')
+
+            # funzione model costo totale
         else:
-            testo=ft.Text("Inserisci Tutti i fornitori!",color="red")
+            testo = ft.Text("Inserisci Tutti i fornitori!", color="red")
         self._view._rowPF2.controls.append(testo)
         self._view.update_page()
-
 
     def fine(self,e):
         self._model.riordinati(self.riordina)
@@ -199,56 +218,11 @@ class Controller:
                             ft.Text(f"{nome}", color=ft.colors.BLACK, width=width * 0.2, text_align="center" ),
                             ft.Text(f"{qtn}", color=ft.colors.BLACK, width=width * 0.05, text_align="center"),
                             ft.Text(f"{lordo}", color=ft.colors.BLACK, width=width * 0.1, text_align="center"),
-                            ft.Text("Netto", color=ft.colors.BLACK, width=width * 0.1, text_align="center"),
                         ],
                         alignment="spaceEvenly",
                     ),
                     bgcolor="white",
                     width=width * 0.75,  # 60% della pagina
-                    padding=10,
-                    alignment=ft.alignment.center
-                )
-                self._view._page.controls.append(riga)
-
-# Sezione relativa pagina storicoR
-    def paginaStoricoR(self,e):
-        self.clear()
-        self._view.load_StoricoRiordina()
-        self.loadRiordini()
-
-    def loadRiordini(self):
-        width = self._view._page.width
-        prodottiFornitori = self._model.prodottiFornitori
-
-        for i, r in self._model.storicoR.items():  # i = mensilità
-            for idP, (qtn, idF) in r.items():
-                nomeP = self._idMap[idP].nome
-                nomeF = self._model.idMapF[idF].nome  # attributo 'nome' del fornitore
-
-                # cerco il costo unitario del prodotto presso quel fornitore
-                costo_unit = 0.0
-                for pf in prodottiFornitori:
-                    if pf.idF == idF and pf.idP == idP:
-                        costo_unit = pf.costo
-                        break
-
-                totale = qtn * costo_unit
-
-                riga = ft.Container(
-                    content=ft.Row(
-                        controls=[
-                            ft.Text(f"{i}", color=ft.colors.BLACK, width=width * 0.05, text_align="center"),
-                            ft.Text(f"{idP}", color=ft.colors.BLACK, width=width * 0.05, text_align="center"),
-                            ft.Text(f"{nomeP}", color=ft.colors.BLACK, width=width * 0.2, text_align="center"),
-                            ft.Text(f"{qtn}", color=ft.colors.BLACK, width=width * 0.05, text_align="center"),
-                            ft.Text(f"{idF}", color=ft.colors.BLACK, width=width * 0.05, text_align="center"),
-                            ft.Text(f"{nomeF}", color=ft.colors.BLACK, width=width * 0.1, text_align="center"),
-                            ft.Text(f"{totale}", color=ft.colors.BLACK, width=width * 0.1, text_align="center"),
-                        ],
-                        alignment="spaceEvenly",
-                    ),
-                    bgcolor="white",
-                    width=width * 0.85,
                     padding=10,
                     alignment=ft.alignment.center
                 )

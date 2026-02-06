@@ -50,14 +50,9 @@ class View(ft.UserControl):
                                             color=coloreTxt,
                                             overlay_color=over, shape=ft.RoundedRectangleBorder(radius=0)),
                                         height=pagHeight * hNav,on_click=self._controller.paginaStoricoV)
-        self._btnNavStoricoR = ft.TextButton(text="StoricoRiordini",
-                                        style=ft.ButtonStyle(
-                                            color=coloreTxt,
-                                            overlay_color=over, shape=ft.RoundedRectangleBorder(radius=0)),
-                                        height=pagHeight * hNav,on_click=self._controller.paginaStoricoR)
 
 
-        self._navBar = ft.Container(ft.Row([ft.Row([self._btnNavVendite,self._btnNavRiordina,self._btnNavStoricoV,self._btnNavStoricoR]),self._title],alignment="spaceBetween"),
+        self._navBar = ft.Container(ft.Row([ft.Row([self._btnNavVendite,self._btnNavRiordina,self._btnNavStoricoV]),self._title],alignment="spaceBetween"),
                                     bgcolor=coloreBck,height=self._page.window_height*0.0625,padding=8)
         self._page.controls.append(self._navBar)
 
@@ -173,7 +168,7 @@ class View(ft.UserControl):
                     ft.Text("Nome", color=ft.colors.WHITE, width=width*0.2, text_align="center", weight="bold"),
                     ft.Text("quantità", color=ft.colors.WHITE, width=width*0.05, text_align="center", weight="bold"),
                     ft.Text("Lordo", color=ft.colors.WHITE, width=width*0.1, text_align="center", weight="bold"),
-                    ft.Text("Netto", color=ft.colors.WHITE, width=width*0.1, text_align="center", weight="bold"),
+
                 ],
                 alignment="spaceEvenly",
             ),
@@ -186,28 +181,6 @@ class View(ft.UserControl):
         self._controller.loadVendite()
         self._page.update()
 
-# Caricamento pagina storicoR
-    def load_StoricoRiordina(self):
-        width = self._page.window_width
-        self.setNavBar()
-        intestazione = ft.Container(
-            content=ft.Row(
-                controls=[
-                    ft.Text("Periodo", color=ft.colors.WHITE, width=width * 0.05, text_align="center", weight="bold"),
-                    ft.Text("Id", color=ft.colors.WHITE, width=width * 0.05, text_align="center", weight="bold"),
-                    ft.Text("Nome", color=ft.colors.WHITE, width=width * 0.2, text_align="center", weight="bold"),
-                    ft.Text("quantità", color=ft.colors.WHITE, width=width * 0.05, text_align="center", weight="bold"),
-                ],
-                alignment="spaceEvenly",
-            ),
-            bgcolor="orange",
-            width=width * 0.75,  # 60% della pagina
-            padding=10,
-            alignment=ft.alignment.center
-        )
-        self._page.controls.append(intestazione)
-        self._controller.loadRiordini()
-        self._page.update()
 
 # altre funzioni
     @property
